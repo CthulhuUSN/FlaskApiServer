@@ -1,59 +1,56 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from marshmallow import Schema, fields
-from flask_rest_jsonapi import Api, ResourceDetail, ResourceList
 
 # Create a new Flask application
 app = Flask(__name__)
 
 # Set up SQLAlchemy
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////database.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////test.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////artists.db'
 db = SQLAlchemy(app)
 
 # Define a class for the Artist table
-#class HeartBeat(db.Model):
-#    id = db.Column(db.Integer, primary_key=True)
-#    uname = db.Column(db.String)
-#    memory_size = db.Column(db.Integer)
-#    box_state = db.Column(db.String)
-#    mac_addr = db.Column(db.String)
-#    up_time = db.Column(db.Integer)
-#    current_time = db.Column(db.Integer)
-
-class HeartBeatTest(db.Model):
+class Artist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    message = db.Column(db.String)
+    name = db.Column(db.String)
+    birth_year = db.Column(db.Integer)
+    genre = db.Column(db.String)
 
 # Create the table
 db.create_all()
 
+from marshmallow_jsonapi.flask import Schema
+from marshmallow_jsonapi import fields
+
 # Create data abstraction layer
-class EndPointSchema(Schema):
+class ArtistSchema(Schema):
     class Meta:
-        type_ = 'endpoint'
-        self_view = 'endpoint_single'
+        type_ = 'artist'
+        self_view = 'artist_one'
         self_view_kwargs = {'id': '<id>'}
-        self_view_many = 'endpoint_many'
+        self_view_many = 'artist_many'
 
     id = fields.Integer()
-    endpoint = fields.Str(required=True)
-    message = fields.Str()
+    name = fields.Str(required=True)
+    birth_year = fields.Integer(load_only=True)
+    genre = fields.Str()
 
 # Create resource managers and endpoints
-class EndpointMany(ResourceList):
-    schema = EndPointSchema
-    data_layer = {'session': db.session,
-                  'model': HeartBeatTest}
 
-class EndpointOne(ResourceDetail):
-    schema = EndPointSchema
+from flask_rest_jsonapi import Api, ResourceDetail, ResourceList
+
+class ArtistMany(ResourceList):
+    schema = ArtistSchema
     data_layer = {'session': db.session,
-                  'model': HeartBeatTest}
+                  'model': Artist}
+
+class ArtistOne(ResourceDetail):
+    schema = ArtistSchema
+    data_layer = {'session': db.session,
+                  'model': Artist}
 
 api = Api(app)
-api.route(EndpointMany, 'endpoint_many', '/endpoints')
-api.route(EndpointOne, 'endpoint_single', '/endpoints/<int:id>')
+api.route(ArtistMany, 'artist_many', '/artists')
+api.route(ArtistOne, 'artist_one', '/artists/<int:id>')
 
 # main loop to run app in debug mode
 if __name__ == '__main__':
