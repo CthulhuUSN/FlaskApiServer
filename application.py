@@ -10,7 +10,6 @@ def get_request():
 
 @api.route('/heartbeat', methods=['POST', 'PATCH'])
 def post_request():
-  data = request.get_json()
   return json.dumps({"success": True}), 201
 
 if __name__ == '__main__':
