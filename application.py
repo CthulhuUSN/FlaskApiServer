@@ -1,57 +1,16 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, json
 
-# Create a new Flask application
-app = Flask(__name__)
+heartbeat_json = [{'data': {'type': 'heartbeat', 'attributes': {'message': 'Thump', 'name': 'Test Device', 'current_time': 1700}, 'id': 1}}]
 
-# Set up SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////artists.db'
-db = SQLAlchemy(app)
+api = Flask(__name__)
 
-# Define a class for the Artist table
-class Artist(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    birth_year = db.Column(db.Integer)
-    genre = db.Column(db.String)
+@api.route('/heartbeat', methods=['GET'])
+def get_companies():
+  return json.dumps(heartbeat_json)
 
-# Create the table
-db.create_all()
+@api.route('/heartbeat', methods=['POST'])
+def post_companies():
+  return json.dumps({"success": True}), 201
 
-from marshmallow_jsonapi.flask import Schema
-from marshmallow_jsonapi import fields
-
-# Create data abstraction layer
-class ArtistSchema(Schema):
-    class Meta:
-        type_ = 'artist'
-        self_view = 'artist_one'
-        self_view_kwargs = {'id': '<id>'}
-        self_view_many = 'artist_many'
-
-    id = fields.Integer()
-    name = fields.Str(required=True)
-    birth_year = fields.Integer(load_only=True)
-    genre = fields.Str()
-
-# Create resource managers and endpoints
-
-from flask_rest_jsonapi import Api, ResourceDetail, ResourceList
-
-class ArtistMany(ResourceList):
-    schema = ArtistSchema
-    data_layer = {'session': db.session,
-                  'model': Artist}
-
-class ArtistOne(ResourceDetail):
-    schema = ArtistSchema
-    data_layer = {'session': db.session,
-                  'model': Artist}
-
-api = Api(app)
-api.route(ArtistMany, 'artist_many', '/artists')
-api.route(ArtistOne, 'artist_one', '/artists/<int:id>')
-
-# main loop to run app in debug mode
 if __name__ == '__main__':
-    app.run(debug=True)
+    api.run()
