@@ -1,15 +1,16 @@
-from flask import Flask, json
-
-heartbeat_json = [{'data': {'type': 'heartbeat', 'attributes': {'message': 'Thump', 'name': 'Test Device', 'current_time': 1700}, 'id': 1}}]
+from flask import Flask, json, request
 
 api = Flask(__name__)
 
-@api.route('/heartbeat', methods=['GET'])
-def get_companies():
-  return json.dumps(heartbeat_json)
+data = {"initial_data": True}
 
-@api.route('/heartbeat', methods=['POST'])
-def post_companies():
+@api.route('/heartbeat', methods=['GET'])
+def get_request():
+  return json.dumps(data)
+
+@api.route('/heartbeat', methods=['POST', 'PATCH'])
+def post_request():
+  data = request.get_json()
   return json.dumps({"success": True}), 201
 
 if __name__ == '__main__':
